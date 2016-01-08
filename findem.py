@@ -8,11 +8,26 @@ from optparse import OptionParser
 usage = "usage: %s: \"## ## ## ## ## ##\"\n" % os.path.basename(sys.argv[0])
 usage += "Need string containing 6 numbers, 5 winners and a bonus"
 
+payouts = {}
+
 # From http://en.wikipedia.org/wiki/Mega_Millions
-payouts = {
+payouts['mega'] = {
 	(5, True) : 500000000,
 	(5, False) : 1000000,
 	(4, True) : 10000,
+	(4, False) : 100,
+	(3, True) : 100,
+	(2, True) : 7,
+	(3, False) : 7,
+	(1, True) : 4,
+	(0, True) : 4,
+}
+
+# From http://www.powerball.com/powerball/pb_prizes.asp
+payouts['powerball'] = {
+	(5, True) : 500000000,
+	(5, False) : 1000000,
+	(4, True) : 50000,
 	(4, False) : 100,
 	(3, True) : 100,
 	(2, True) : 7,
@@ -29,7 +44,7 @@ def line_to_nums(line):
 			 int(m.group(4)), int(m.group(5))), int(m.group(6)) ]
 	return set;
 
-def find_winners(numbers, winners):
+def find_winners(payouts, numbers, winners):
 	payout = 0
 	for set in numbers:
 		count = 0
@@ -67,6 +82,8 @@ for line in sys.stdin.readlines():
 
 parser = OptionParser(usage=usage)
 parser.add_option("-H", "--hist", action="store_true", default=False, help="Print histogram of lotto numbers")
+parser.add_option("-m", "--mega", action="store_true", default=False, help="Use Mega Millions rules")
+parser.add_option("-p", "--powerball", action="store_true", default=False, help="Use Powerball rules")
 
 (options, args) = parser.parse_args()
 
@@ -89,13 +106,25 @@ if len(args) != 1 and not options.hist:
 	parser.print_help()
 	sys.exit(1)
 
+rules = payouts['powerball']
+
+if options.mega and options.powerball:
+	print >>sys.stderr, "Can only use one of --mega or --powerball."
+	parser.print_help()
+	sys.exit(1)
+
+if options.mega:
+	rules = payouts['mega']
+elif options.powerball:
+	rules = payouts['powerball']
+
 if len(args) == 1:
 	winners = line_to_nums(args[0])
 	if winners is not None:
 		if options.hist:
 			print ""
 		print "--- PAYOUT ---"
-		payout = find_winners(numbers, winners)
+		payout = find_winners(rules, numbers, winners)
 
 		print ""
 		print "Total payout: $%d" % payout
