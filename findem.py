@@ -37,26 +37,26 @@ payouts['powerball'] = {
 }
 
 def line_to_nums(line):
-	set = None
+	nums = None
 	m = re.match("(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)", line)
 	if m:
-		set = [ (int(m.group(1)), int(m.group(2)), int(m.group(3)),
+		nums = [ (int(m.group(1)), int(m.group(2)), int(m.group(3)),
 			 int(m.group(4)), int(m.group(5))), int(m.group(6)) ]
-	return set;
+	return nums;
 
 def find_winners(payouts, numbers, winners):
 	payout = 0
-	for set in numbers:
+	for ticket in numbers:
 		count = 0
 		for num in winners[0]:
-			if num in set[0]:
+			if num in ticket[0]:
 				count += 1
 
-		bonus = (winners[1] == set[1])
+		bonus = (winners[1] == ticket[1])
 
 		if (count, bonus) in payouts:
-			num = " ".join(map(str, set[0]))
-			num += " %d" % set[1]
+			num = " ".join(map(str, ticket[0]))
+			num += " %d" % ticket[1]
 			print "  %s pays out $%d" % (num, payouts[(count, bonus)])
 			payout += payouts[(count, bonus)]
 	return payout
@@ -66,18 +66,18 @@ numbers = []
 hist = {}
 bhist = {}
 for line in sys.stdin.readlines():
-	set = line_to_nums(line)
-	if set:
-		for num in set[0]:
+	ticket = line_to_nums(line)
+	if ticket:
+		for num in ticket[0]:
 			if num in hist:
 				hist[num] += 1
 			else:
 				hist[num] = 0
-		if set[1] in bhist:
-			bhist[set[1]] += 1
+		if ticket[1] in bhist:
+			bhist[ticket[1]] += 1
 		else:
-			bhist[set[1]] = 0
-		numbers.append(set)
+			bhist[ticket[1]] = 0
+		numbers.append(ticket)
 
 
 parser = OptionParser(usage=usage)
